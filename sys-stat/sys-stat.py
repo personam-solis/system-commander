@@ -34,15 +34,15 @@ def convert_size(bytes: int) -> AnyStr:
     if len(str(bytes)) <= 3:
         return 'UNK'
     elif len(str(bytes)) <= 6:
-        return f'{rount(bytes / 1024, 1)} KB'
+        return f'{round(bytes / 1024, 1)} KB'
     elif len(str(bytes)) <= 6:
-        return f'{rount(bytes / 1024 / 1024, 1)} MB'
+        return f'{round(bytes / 1024 / 1024, 1)} MB'
     elif len(str(bytes)) <= 6:
-        return f'{rount(bytes / 1024 / 1024 / 1024, 1)} GB'
+        return f'{round(bytes / 1024 / 1024 / 1024, 1)} GB'
     elif len(str(bytes)) <= 6:
-        return f'{rount(bytes / 1024 / 1024 / 1024 / 1024, 1)} TB'
+        return f'{round(bytes / 1024 / 1024 / 1024 / 1024, 1)} TB'
     elif len(str(bytes)) <= 6:
-        return f'{rount(bytes / 1024 / 1024 / 1024 / 1024 / 1024, 1)} PB'
+        return f'{round(bytes / 1024 / 1024 / 1024 / 1024 / 1024, 1)} PB'
 
 
 def get_sysinfo() -> Dict:
@@ -60,6 +60,17 @@ def get_sysinfo() -> Dict:
 
     # Remove all interfaces that are not needed (Docker, Podman, Local)
     for interface in list(all_if_info.keys()):
-        if re.search(r'[Dd]ocker|[Pp}odman|lo', interface):
+        if re.search(r'[Dd]ocker|[Pp]odman|lo', interface):
             all_if_info.pop(interface)
+
+    # Add interface info to dict
+    for interface in list(all_if_info.keys()):
+        sysinfo['interface'].append({
+            interface: {
+                "ip": all_if_info[interface][0].address,
+                "mac": all_if_info[interface][-1].address
+            }
+        })
+
+    return sysinfo
 
