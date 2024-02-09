@@ -153,6 +153,32 @@ def get_proc_info() -> Dict:
     return proc_info
 
 
+def search_proc(search: str, sensitive: bool) -> List:
+
+    if sensitive:
+        return subprocess.run(["pgrep", search], capture_output=True,
+                              text=True).stdout.split()
+    else:
+        return subprocess.run(["pgrep", "-i", search], capture_output=True,
+                              text=True).stdout.split()
+
+
+def search_lsof(pids: list) -> List:
+
+    lsof = []
+
+    for file in subprocess.run(["lsof", "-p", ','.join(pids)], capture_output=True,
+                               text=True).stdout.split('\n')[1:]:
+        try:
+            # grab the file by matching the regex
+            lsof.append(re.search(r'/\D.*', ' '.join(file.split()[5:])).group())
+        except AttributeError:
+            # If the regex did not match a valid path, just continue
+            pass
+
+    return lsof
+
+
 class PIDStats():
     """
     Get the stats associated with a list of PIDs. This includes user, pid, cpu%,
