@@ -74,3 +74,119 @@ def get_sysinfo() -> Dict:
 
     return sysinfo
 
+
+def get_cpus() -> List:
+    """
+    Get the current usage stat of all processors.
+
+    Args:
+        None
+
+    Returns:
+        List: Current usage of each processor by index
+    """
+
+    return psutil.cpu_percent(interval=1, percpu=True)
+
+
+def get_memory() -> float:
+
+    return psutil.virtual_memory().percent
+
+
+def get_net_io(all_if: list) -> Dict:
+
+    net_io = {}
+
+    all_if_info = psutil.net_io_counters(pernic=True)
+
+    for net_if in all_if:
+        net_io.update({
+            net_if: {
+                "bytes_sent": all_if_info[net_if].bytes_sent,
+                "bytes_received": all_if_info[net_if].bytes_recv,
+                "errin": all_if_info[net_if].errin,
+                "errout": all_if_info[net_if].errout
+            }
+        })
+
+    return net_io
+
+
+def get_disks() -> List:
+
+    part_info = []
+
+    for part in psutil.disk_partitions():
+        disk_usage = psutil.disk_usage(part.mountpoint)
+        part_info.append({
+            part.mountpoint: {
+                "device": part.device,
+                "fstype": part.fstype,
+                "total_size": convert_size(disk_usage.total),
+                "percent": disk_usage.percent
+            }
+        })
+
+    return part_info
+
+
+def get_proc_info() -> Dict:
+
+    proc_info = {}
+
+    for process in subprocess.run(["ps", "aux"], capture_output=True,
+                                  text=True).stdout.split('\n'):
+        split_proc = process.split()
+
+        proc_info.update({
+            split_proc[1]: {
+                "USER": split_proc[0],
+                "CPU": split_proc[2],
+                "MEM": split_proc[3],
+                "START": split_proc[8],
+                "TIME": split_proc[9],
+                "COMMAND": ' '.join(split_proc[10:])
+            }
+        })
+    
+    return proc_info
+
+
+class PIDStats():
+    """
+    Get the stats associated with a list of PIDs. This includes user, pid, cpu%,
+    mem%, start_datetime, command, and associated open files.
+    """
+    pass
+
+
+class ScreenWriter():
+    """
+    Write the user selected information onto the screen based on the interval
+    given. For efficiency only the parts that are dynamic are re-fetched and
+    rebuilt.
+    """
+    pass
+
+
+"""
+############################# MAIN #############################
+"""
+
+
+def main():
+    """
+    Run the program. Accepts no inputs.
+    """
+    # Build and store user arguments
+    parser = user_input()
+    input_args = parser.parse_args()
+
+    # Configure the logging object
+    # gd.set_logging(input_args)
+
+
+# Only run if executing, not import
+if __name__ == "__main__":
+    main()
