@@ -2,5 +2,59 @@
 
 import globalDecorator as gd
 import argparse
+import json
 from typing import List, Dict, AnyStr, Any
 
+
+def user_input() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="""
+Simple tool that manages Linux volumes which rely on the LVM utility. This works
+as either an interactive Q&A, or as a single-line script with options.
+                                     
+Please note that this assumes you are running as root and the Linux LVM utility
+has already been installed.
+    """, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--interactive', '-i', action='store_true',
+                        help="Run the program interactively")
+
+    gd.add_log_arg(parser) # Add decorator options
+
+    return parser
+
+
+@gd.log
+def json_print(unformatted: dict) -> AnyStr:
+    """
+    Get a raw dictionary, then using JSON make it look pretty.
+
+    Args:
+        unformatted (dict): Unformatted Dict or JSON (as a Dict)
+
+    Returns:
+        Pretty string that can be printed
+    """
+
+    return str(json.dumps(unformatted, sort_keys=True, indent=4))
+
+
+def main():
+    """
+    Run the program. Accepts no inputs.
+    """
+    # Build and store user arguments
+    parser = user_input()
+    input_args = parser.parse_args()
+
+    # Configure the logging object
+    gd.set_logging(input_args)
+
+    # Error if the user does not give an argument
+    if all(value == False or value == None
+           for value in vars(input_args).values()):
+        parser.print_help()
+        raise argparse.ArgumentError("NO ARGUMENT GIVEN BUT REQUIRED!")
+
+
+# Only run if executing, not import
+if __name__ == "__main__":
+    main()
